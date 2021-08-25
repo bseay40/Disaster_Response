@@ -17,13 +17,14 @@ def load_data(messages_filepath, categories_filepath):
 
     #merge the two datasets using the common id
     df = pd.merge(messages, categories, how = 'outer', on = 'id')
+    return df
 
 def clean_data(df):
     '''
     Function cleans the combined dataframe, df.
     '''
     # create a dataframe of the 36 individual category columns
-    categories = df.categories.str.split(';',expand = True)
+    categories = df['categories'].str.split(';',expand = True)
 
     # select the first row of the categories dataframe
     row = categories.iloc[0,:]
@@ -52,13 +53,16 @@ def clean_data(df):
     # drop duplicates
     df.drop_duplicates(inplace=True)
 
+    return df
+
 
 def save_data(df, database_filename):
     '''
     Save the combined and cleaned dataset to an SQLite database
     '''
-    engine = create_engine(database_filename)
-    df.to_sql('InsertTableName', engine, index=False)
+    full_file = 'sqlite:///'+database_filename
+    engine = create_engine(full_file)#database_filename)
+    df.to_sql('clean_message_dataset', engine, index=False)
 
 
 def main():

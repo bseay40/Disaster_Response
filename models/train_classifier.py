@@ -1,24 +1,73 @@
 import sys
+import numpy as np
+import pandas as pd
+from sqlalchemy import create_engine
 
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
+
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import classification_report
+
+import pickle
 
 def load_data(database_filepath):
-    pass
+    '''
+    Loads the cleaned SQL dataset output from the ETL pipeline
+    '''
+    engine = create_engine('sqlite:///'+database_filepath)
+    df = pd.read_sql_table('clean_message_dataset', engine)
+    X = df['message'] # the message is the predictor
+    Y = df.iloc[:,4:] # the 36 categories is what we are trying to predict the message falls in.
+
+    category_names = Y.columns
+
+    return X, Y, category_names
 
 
 def tokenize(text):
-    pass
+    '''
+    Tokenizing function to process text data
+    '''
+    text = text.lower()
+    words = word_tokenize(text)
+    words = [w for w in words if w not in stopwords.words("english")] # removing stop words
+    words = [WordNetLemmatizer().lemmatize(w) for w in words]
+    return words
 
 
 def build_model():
-    pass
+    model = Pipeline([
+        ('vect', CountVectorizer(tokenizer=tokenize,lowercase = True)),
+        ('tfidf', TfidfTransformer(sublinear_tf = True)),
+        ('clf', MultiOutputClassifier(RandomForestClassifier()))
+    ])
+
+    return model
+    #X_train, X_test, y_train, y_test = train_test_split(X, Y)
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+    #pipeline.fit(X_train, y_train)
+    #model = pipeline.predict(X_test)
+    xyz = model.predict(X_test)
+    for col in range(0,36,1):
+        print(category_names[col])
+        print(classification_report(Y_test.iloc[:,col], xyz[:,col]))
 
 
 def save_model(model, model_filepath):
-    pass
+    filename = model_filepath
+    with open(filename, 'wb') as file:
+        pickle.dump(model, file)
 
 
 def main():
@@ -27,13 +76,13 @@ def main():
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
         X, Y, category_names = load_data(database_filepath)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
-        
+
         print('Building model...')
         model = build_model()
-        
+
         print('Training model...')
         model.fit(X_train, Y_train)
-        
+
         print('Evaluating model...')
         evaluate_model(model, X_test, Y_test, category_names)
 
