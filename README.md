@@ -11,6 +11,9 @@
 
 # Files for project
 > User inputs both the message and category datasets.
+> process_data.py: ETL pipeline
+> train_classifier.py: ML pipeline
+> run.py: web application and visualization script
 
 # How to interact with the project
 1. Run the following commands in the project's root directory to set up your database and model.
