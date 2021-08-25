@@ -53,6 +53,10 @@ def clean_data(df):
     # drop duplicates
     df.drop_duplicates(inplace=True)
 
+    # replace 2s to 1s in related column, making it 'binary'
+    df.related = df.related.astype('str').str.replace('2','1')
+    df.related = df.related.astype('int')
+
     return df
 
 
@@ -62,7 +66,7 @@ def save_data(df, database_filename):
     '''
     full_file = 'sqlite:///'+database_filename
     engine = create_engine(full_file)#database_filename)
-    df.to_sql('clean_message_dataset', engine, index=False)
+    df.to_sql('clean_message_dataset', engine, index=False, if_exists='replace')
 
 
 def main():

@@ -45,11 +45,19 @@ def tokenize(text):
 
 
 def build_model():
-    model = Pipeline([
+    pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize,lowercase = True)),
         ('tfidf', TfidfTransformer(sublinear_tf = True)),
         ('clf', MultiOutputClassifier(RandomForestClassifier()))
     ])
+
+    parameters = {
+        'vect__strip_accents': ['ascii','unicode', None],
+        'vect__lowercase': [True, False],
+        'tfidf__sublinear_tf': [True, False],
+    }
+
+    model = GridSearchCV(pipeline, param_grid=parameters)
 
     return model
     #X_train, X_test, y_train, y_test = train_test_split(X, Y)
@@ -58,10 +66,10 @@ def build_model():
 def evaluate_model(model, X_test, Y_test, category_names):
     #pipeline.fit(X_train, y_train)
     #model = pipeline.predict(X_test)
-    xyz = model.predict(X_test)
+    x_pred = model.predict(X_test)
     for col in range(0,36,1):
         print(category_names[col])
-        print(classification_report(Y_test.iloc[:,col], xyz[:,col]))
+        print(classification_report(Y_test.iloc[:,col], x_pred[:,col]))
 
 
 def save_model(model, model_filepath):
