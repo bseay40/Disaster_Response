@@ -45,6 +45,9 @@ def tokenize(text):
 
 
 def build_model():
+    '''
+    Builds the model pipeline, creates Grid Search parameters to tune model.
+    '''
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize,lowercase = True)),
         ('tfidf', TfidfTransformer(sublinear_tf = True)),
@@ -57,15 +60,16 @@ def build_model():
         'tfidf__sublinear_tf': [True, False],
     }
 
-    model = GridSearchCV(pipeline, param_grid=parameters)
+    model = GridSearchCV(pipeline, param_grid=parameters, verbose=3)
 
     return model
     #X_train, X_test, y_train, y_test = train_test_split(X, Y)
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    #pipeline.fit(X_train, y_train)
-    #model = pipeline.predict(X_test)
+    '''
+    Outputs model test results for each of the categories.
+    '''
     x_pred = model.predict(X_test)
     for col in range(0,36,1):
         print(category_names[col])
@@ -73,6 +77,9 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    '''
+    Saves the model using Pickle.
+    '''
     filename = model_filepath
     with open(filename, 'wb') as file:
         pickle.dump(model, file)
